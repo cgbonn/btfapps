@@ -1,7 +1,7 @@
 btfapps
 =======
 
-This is a suited of auxiliary applications for Bidirectional Texture Functions (BTFs).
+This is a suite of auxiliary applications for Bidirectional Texture Functions (BTFs).
 
 It currently contains the following utilities:
 
