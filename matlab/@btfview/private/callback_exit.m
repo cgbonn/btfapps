@@ -45,4 +45,3 @@ function obj = callback_exit(obj, src, evnt) %#ok<INUSD>
         delete(obj.handles.figure);
     end
 end
-end

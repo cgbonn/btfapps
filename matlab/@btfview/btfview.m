@@ -198,7 +198,7 @@ classdef btfview < handle
             
             for bii = 1 : numel(btf_inds)
                 bi = btf_inds(bii);
-                obj.ui_progress(bii / numel(btf_inds), 'exporting BTFs');
+                obj.ui_callback_progress(bii / numel(btf_inds), 'exporting BTFs');
                 
                 % extract ROI if requested
                 if get(obj.handles.ch_apply_roi, 'Value') && ~isempty(obj.roi)
