@@ -34,6 +34,18 @@ function obj = ui_initialize(obj)
     obj.handles.handles_3d = []; % handles of 3D ABRDF plot
     
     % set up layout
+    if isempty(which('uix.BoxPanel'))
+        ver = version('-release');
+        year = str2double(ver(1 : 4));
+        ver = ver(end);
+        if year < 2014 || year == 2014 && strcmpi(ver, 'a')
+            error(['Could not find GUI Layout Toolbox, please install: ', ...
+                'http://www.mathworks.com/matlabcentral/fileexchange/27758-gui-layout-toolbox.']);
+        else
+            error(['Could not find GUI Layout Toolbox, please install: ', ...
+                'http://www.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox']);
+        end
+    end
     obj.handles.uix_vbox_global = uix.VBox('Parent', obj.handles.figure, 'Spacing', 2); % full figure vertical box
     obj.handles.uix_hbox_upper = uix.HBoxFlex('Parent', obj.handles.uix_vbox_global, 'Spacing', 3); % upper horizontal box
     obj.handles.uix_status_box = uix.HBox('Parent', obj.handles.uix_vbox_global, 'Spacing', 5); % optionally displays a progress bar
