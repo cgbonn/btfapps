@@ -33,6 +33,10 @@ function obj = ui_callback_pushbutton(obj, bh, evnt) %#ok<INUSD>
                 obj.btfs{obj.b}.buffer_bdi(obj.buffer_mem);
             end
             obj.update_btf();
+        case obj.handles.bh_clear_bdi_buffer
+            if obj.btfs{obj.b}.is_bdi()
+                obj.btfs{obj.b}.clear_buffer();
+            end
         case obj.handles.bh_gamma
             obj.gamma = 1;
             set(obj.handles.eh_gamma,'String',sprintf('%.2f', obj.gamma));

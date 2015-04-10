@@ -24,55 +24,48 @@
 % *************************************************************************
 %
 % React to UIX panel dock / undock button clicks.
-function obj = uix_callback_dock(obj, src, evnt) %#ok<INUSD>
-    if src == obj.handles.figure_abrdf
-        src = obj.handles.uix_boxpanel_abrdf;
-    elseif src == obj.handles.figure_sampling
-        src = obj.handles.uix_boxpanel_sampling;
-    elseif src == obj.handles.figure_texture
-        src = obj.handles.uix_boxpanel_texture;
-    else
-        src = get(src, 'Parent');
-    end
-    
-    if src == obj.handles.uix_boxpanel_abrdf
+function obj = uix_callback_dock(obj, src, evnt, uixobj) %#ok<INUSL>
+    if uixobj == obj.handles.uix_boxpanel_abrdf
         new_parent = obj.handles.uix_vbox_upper_right;
         new_title = 'ABRDF';
-    elseif src == obj.handles.uix_boxpanel_sampling
+    elseif uixobj == obj.handles.uix_boxpanel_sampling
         new_parent = obj.handles.uix_vbox_upper_right;
         new_title = 'Angular sampling';
-        if obj.handles.uix_boxpanel_sampling.Minimized
+        if obj.handles.uix_boxpanel_sampling.IsMinimized
             obj.uix_callback_minimize(obj.handles.ah_sampling);
         end
-    elseif src == obj.handles.uix_boxpanel_texture
+    elseif uixobj == obj.handles.uix_boxpanel_texture
         new_parent = obj.handles.uix_vbox_upper_left;
         new_title = 'Texture';
     end
     
-    src.Docked = ~src.Docked;
-    if src.Docked
+    uixobj.IsDocked = ~uixobj.IsDocked;
+    if uixobj.IsDocked
         % put panel back into the layout
-        new_fig = get(src, 'Parent');
-        set(src, 'Parent', new_parent);
+        new_fig = get(uixobj, 'Parent');
+        set(uixobj, 'Parent', new_parent);
         delete(new_fig);
+        new_fig = [];
     else
         % take panel out of the layout
-        pos = getpixelposition(src);
+        pos = getpixelposition(uixobj);
         new_fig = figure('Name', new_title, 'NumberTitle', 'off', ...
             'MenuBar', 'none', 'Toolbar', 'none', ...
-            'CloseRequestFcn', @obj.callback_dock, ...
+            'CloseRequestFcn', {@obj.uix_callback_dock, uixobj}, ...
             'WindowButtonUpFcn', @obj.callback_button_up);
         fig_pos = get(new_fig, 'Position');
         set(new_fig, 'Position', [fig_pos(1,1:2), pos(1,3:4)]);
-        set(src, 'Parent', new_fig, ...
+        set(uixobj, 'Parent', new_fig, ...
             'Units', 'Normalized', ...
             'Position', [0 0 1 1]);
-        if src == obj.handles.uix_boxpanel_abrdf
-            obj.handles.figure_abrdf = new_fig;
-        elseif src == obj.handles.uix_boxpanel_texture
-            obj.handles.figure_texture = new_fig;
-        else
-            obj.handles.figure_sampling = new_fig;
-        end
+    end
+    
+    % set / reset figure handles
+    if uixobj == obj.handles.uix_boxpanel_abrdf
+        obj.handles.figure_abrdf = new_fig;
+    elseif uixobj == obj.handles.uix_boxpanel_texture
+        obj.handles.figure_texture = new_fig;
+    elseif uixobj == obj.handles.uix_boxpanel_sampling
+        obj.handles.figure_sampling = new_fig;
     end
 end

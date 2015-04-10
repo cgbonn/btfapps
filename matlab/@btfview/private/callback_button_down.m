@@ -29,7 +29,7 @@ function obj = callback_button_down(obj, src, evnt) %#ok<INUSD>
     obj.sel_type = get(obj.handles.figure, 'SelectionType');
     if src == obj.handles.ih_abrdf
         % mouse button down inside ABRDF view
-        if obj.handles.uix_boxpanel_abrdf.Docked
+        if obj.handles.uix_boxpanel_abrdf.IsDocked
             set(obj.handles.figure,'WindowButtonMotionFcn',{@obj.callback_motion,obj.handles.ah_abrdf});
             set(obj.handles.figure,'WindowKeyPressFcn',{@obj.callback_key_press,obj.handles.ah_abrdf});
         else
@@ -39,7 +39,7 @@ function obj = callback_button_down(obj, src, evnt) %#ok<INUSD>
         obj.callback_motion([], [], obj.handles.ah_abrdf);
     elseif src == obj.handles.ih_texture
         % mouse button down inside texture view
-        if obj.handles.uix_boxpanel_texture.Docked
+        if obj.handles.uix_boxpanel_texture.IsDocked
             set(obj.handles.figure, 'WindowButtonMotionFcn', {@obj.callback_motion, obj.handles.ah_texture});
             set(obj.handles.figure, 'WindowKeyPressFcn', {@obj.callback_key_press, obj.handles.ah_texture});
         else

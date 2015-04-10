@@ -27,7 +27,8 @@
 function ui_callback_progress(obj, value, str)
     % update progress bar & status text
     if exist('value', 'var')
-        set(obj.handles.uix_vbox_global, 'Heights', [-1, 30, 115]);
+        obj.handles.java_progress_bar.setVisible(true);
+        set(obj.handles.uix_vbox_global, 'Sizes', [-1, 30, 115]);
         if ~exist('str', 'var')
             str = '';
         end
@@ -40,7 +41,8 @@ function ui_callback_progress(obj, value, str)
         end
     else
         set(obj.handles.th_status, 'String', '');
-        set(obj.handles.uix_vbox_global, 'Heights', [-1, 0, 115]);
+        set(obj.handles.uix_vbox_global, 'Sizes', [-1, 0, 115]);
+        obj.handles.java_progress_bar.setVisible(false);
     end
     drawnow;
 end

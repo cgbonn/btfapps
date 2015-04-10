@@ -55,7 +55,11 @@ function obj = callback_scroll_wheel(obj, src, evnt) %#ok<INUSL>
                 obj.b = max(1, min(numel(obj.btfs), obj.b + 1));
             end
             set(obj.handles.lh_btfs, 'Value', obj.b);
-            obj.update_bdi_ui();
+            if obj.btfs{obj.b}.is_bdi()
+                obj.handles.uix_disp_bdi_bp.Visible = 'on';
+            else
+                obj.handles.uix_disp_bdi_bp.Visible = 'off';
+            end
             obj.update_btf();
     end
     obj.show_texture();

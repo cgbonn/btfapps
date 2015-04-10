@@ -24,19 +24,20 @@
 % *************************************************************************
 %
 % React to UIX panel minimize / restore button clicks.
-function obj = uix_callback_minimize(obj, src, evnt) %#ok<INUSD>
+function obj = uix_callback_minimize(obj, src, evnt, uixobj) %#ok<INUSL>
     % angular sampling can be minimized
-    src = get(src, 'Parent');
-    if src.Docked
-        vbox = get(src, 'Parent');
-        index = find(vbox.Contents == src);
-        heights = get(vbox, 'Heights');
-        src.Minimized = ~src.Minimized;
-        if src.Minimized
-            heights(index) = 20;
-        else
-            heights(index) = -1;
+    if uixobj == obj.handles.uix_boxpanel_sampling
+        if uixobj.IsDocked
+            vbox = obj.handles.uix_vbox_upper_right;
+            index = find(vbox.Children == get(obj.handles.ah_sampling, 'Parent'));
+            heights = get(vbox, 'Sizes');
+            uixobj.IsMinimized = ~uixobj.IsMinimized;
+            if uixobj.IsMinimized
+                heights(index) = 20;
+            else
+                heights(index) = -1;
+            end
+            set(vbox, 'Sizes', heights);
         end
-        set(vbox, 'Heights', heights);
     end
 end

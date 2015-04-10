@@ -30,7 +30,11 @@ function obj = ui_callback_listbox(obj, src, evnt) %#ok<INUSD>
     switch src
         case obj.handles.lh_btfs
             obj.b = val;
-            obj.update_bdi_ui();
+            if obj.btfs{obj.b}.is_bdi()
+                obj.handles.uix_disp_bdi_bp.Visible = 'on';
+            else
+                obj.handles.uix_disp_bdi_bp.Visible = 'off';
+            end
             obj.update_btf();
             obj.show_abrdf();
             obj.show_texture();
