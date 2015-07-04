@@ -235,6 +235,7 @@ classdef btfview < handle
                 obj.btfs{obj.b}.write(output_path);
             end
             obj.roi_sanity_checks();
+            obj.ui_callback_progress();
         end
     end
 

@@ -74,6 +74,9 @@ function obj = ui_initialize(obj)
     if obj.fancy_progress
         obj.handles.java_progress_bar = javax.swing.JProgressBar;
         try
+            if strcmpi(computer(), 'PCWIN') || strcmpi(computer(), 'PCWIN64')
+                error('This doesn''t work under Windows -_-');
+            end
             set(obj.handles.java_progress_bar, 'StringPainted', 1, 'Value', 10, 'Indeterminate', 0);
             obj.handles.pbh = javacomponent(obj.handles.java_progress_bar, [0, 0, 100, 20], obj.handles.uix_status_box);
         catch
