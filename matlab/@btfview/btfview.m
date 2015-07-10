@@ -200,18 +200,6 @@ classdef btfview < handle
                 bi = btf_inds(bii);
                 obj.ui_callback_progress(bii / numel(btf_inds), 'exporting BTFs');
 
-                % extract ROI if requested
-                if get(obj.handles.ch_apply_roi, 'Value') && ~isempty(obj.roi)
-                    obj.btfs{bi}.crop(obj.roi, obj.roi_stride);
-                end
-
-                % update UI to show progress
-                obj.b = bi;
-                obj.update_btf();
-                obj.show_texture();
-                obj.show_abrdf();
-                drawnow;
-
                 % generate output file path
                 [~, file_base_name] = fileparts(obj.btfs{bi}.meta.file_name);
                 if isempty(file_base_name)
@@ -232,10 +220,26 @@ classdef btfview < handle
                         output_path = fullfile(output_dir, output_file_name);
                     end
                 end
-                obj.btfs{obj.b}.write(output_path);
+                
+                % extract ROI if requested
+                if get(obj.handles.ch_apply_roi, 'Value') && ~isempty(obj.roi)
+                    obj.btfs{bi}.crop(obj.roi, obj.roi_stride, output_path);
+                end
+
+                % update UI to show progress
+                obj.b = bi;
+                obj.update_btf();
+                obj.show_texture();
+                obj.show_abrdf();
+                drawnow;
+
+                if ~obj.btfs{bi}.is_bdi()
+                    % cropped BDI has already been written
+                    obj.btfs{obj.b}.write(output_path);
+                end
             end
             obj.roi_sanity_checks();
-            obj.ui_callback_progress();
+            obj.progress_callback();
         end
     end
 
