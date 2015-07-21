@@ -132,15 +132,17 @@ function obj = ui_initialize(obj)
     
     % tonemapping tab
     % first column
-    uicontrol('Parent',obj.handles.uix_tm_bb1, 'Style', 'text', 'String', 'Scale:', 'HorizontalAlignment', 'right');
-    uicontrol('Parent',obj.handles.uix_tm_bb1, 'Style', 'text', 'String', 'Gamma:', 'HorizontalAlignment', 'right');
-    uicontrol('Parent',obj.handles.uix_tm_bb1, 'Style', 'text', 'String', 'Offset:', 'HorizontalAlignment', 'right');
+    uicontrol('Parent', obj.handles.uix_tm_bb1, 'Style', 'text', 'String', 'Scale:', 'HorizontalAlignment', 'right');
+    uicontrol('Parent', obj.handles.uix_tm_bb1, 'Style', 'text', 'String', 'Gamma:', 'HorizontalAlignment', 'right');
+    uicontrol('Parent', obj.handles.uix_tm_bb1, 'Style', 'text', 'String', 'Offset:', 'HorizontalAlignment', 'right');
+    uiextras.Empty('Parent', obj.handles.uix_tm_bb1);
     
     % second column
     obj.handles.eh_scale = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'edit', 'String', sprintf('%.2f', obj.scale), 'Callback', @obj.ui_callback_edit);
     obj.handles.eh_gamma = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'edit', 'String', sprintf('%.2f', obj.gamma), 'Callback', @obj.ui_callback_edit);
     obj.handles.eh_offset = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'edit', 'String', sprintf('%.2f', obj.offset_color), 'Callback', @obj.ui_callback_edit);
     obj.handles.ch_normalize = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'checkbox', 'String', 'normalize', 'Value', obj.normalize, 'Callback', @obj.callback_checkbox);
+    obj.handles.ch_logarithm = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'checkbox', 'String', 'logarithm', 'Value', obj.logarithm, 'Callback', @obj.callback_checkbox);
     
     % third column
     obj.handles.bh_scale = uicontrol('Parent', obj.handles.uix_tm_bb3, 'Style', 'pushbutton', 'String', 'Reset scaling', 'Callback', @obj.ui_callback_pushbutton);
@@ -178,6 +180,7 @@ function obj = ui_initialize(obj)
     obj.handles.ch_wrap_texture = uicontrol('Parent', obj.handles.uix_disp_bb1, 'Style', 'checkbox', 'String', 'wrap cursor', 'Value', obj.wrap_around_texture, 'Callback', @obj.callback_checkbox);
     obj.handles.ch_fixed_aspect_ratio = uicontrol('Parent', obj.handles.uix_disp_bb1, 'Style', 'checkbox', 'String', 'fix asp. ratio', 'Value', obj.fixed_aspect_ratio, 'Callback', @obj.callback_checkbox);
     obj.handles.ch_crosshair = uicontrol('Parent', obj.handles.uix_disp_bb1, 'Style', 'checkbox', 'String', 'crosshair', 'Value', obj.crosshair, 'Callback', @obj.callback_checkbox);
+    obj.handles.ch_texture_psd = uicontrol('Parent', obj.handles.uix_disp_bb1, 'Style', 'checkbox', 'String', 'texture PSD', 'Value', obj.show_texture_psd, 'Callback', @obj.callback_checkbox);
     set(obj.handles.uix_disp_bb1, 'ButtonSize', [110, 20]);
     
     % ROI selection

@@ -38,6 +38,8 @@ function obj = callback_checkbox(obj, ch, evnt) %#ok<INUSD>
                 set(obj.handles.ah_texture, 'PlotBoxAspectRatioMode', 'auto');
                 set(obj.handles.ah_abrdf, 'PlotBoxAspectRatioMode', 'auto');
             end
+        case obj.handles.ch_logarithm
+            obj.logarithm = val;
         case obj.handles.ch_normalize
             obj.normalize = val;
         case obj.handles.ch_only_buffered
@@ -48,6 +50,8 @@ function obj = callback_checkbox(obj, ch, evnt) %#ok<INUSD>
         case obj.handles.ch_textures_from_file
             obj.textures_from_file = val;
             obj.update_btf();
+        case obj.handles.ch_texture_psd
+            obj.show_texture_psd = val;
         case obj.handles.ch_wrap_texture
             obj.wrap_around_texture = val;
     end

@@ -96,6 +96,7 @@ classdef btfview < handle
         gamma = 1; % gamma correction
         offset_color = 0; % color offset
         normalize = false; % normalize each image/abrdf
+        logarithm = false; % take the logarithm for reducing the dynamic range
 
         fancy_progress = true; % set this to false if you get errors regarding java swing
         wrap_around_texture = false; % wrap around if cursor is moved outside of texture axes
@@ -107,6 +108,7 @@ classdef btfview < handle
         show_only_roi = false; % restrict the display to the selected ROI
         apply_roi = true; % when exporting BTFs, apply the selected ROI
         crosshair = true; % show current (x,y)- and (l,v)-positions with a crosshair?
+        show_texture_psd = false; % show power spectral density instead of textures
     end
 
     methods (Access = public)
@@ -292,13 +294,8 @@ classdef btfview < handle
             % Prepares image data for display.
             % Applies an offset, linear scaling, gamma-correction and clamping
             % on the data. Parameters:
-            %   img: arbitrarily sized image data
-            %   scale: scaling factor that is multiplied element-wise
-            %   gamma: inverse of the exponent for gamma correction
-            %   clamp: if set to true clamping to [0,1] is performed after all other operations
-            %   offset: an offset that is added to the data
-            % Returns both the processed image data and the used parameters
-            % (useful if autoscaling is applied).
+            %   image: arbitrarily sized image data
+            %   do_clamp: force clamping to [0, 1]
 
             scale = obj.scale; %#ok<PROP>
             gamma = obj.gamma; %#ok<PROP>
@@ -307,7 +304,11 @@ classdef btfview < handle
             if ~exist('do_clamp', 'var')
                 do_clamp = true;
             end
-
+            
+            if obj.logarithm
+                image = log(image);
+            end
+            
             if obj.normalize
                 image_min = min(image(:));
                 image_max = max(image(:));
@@ -335,8 +336,23 @@ classdef btfview < handle
                 obj.current_l = obj.l;
                 obj.current_v = obj.v;
             end
-
-            texture = obj.tonemap(obj.current_texture);
+            
+            if obj.show_texture_psd
+                % compute FFT of texture's intensity
+                texture = fft2(mean(obj.current_texture, 3));
+                
+                % remove DC coefficient (this is usually much higher and
+                % prohibits nice display of the FFT)
+                texture(1, 1) = min(texture(:));
+                
+                % compute power spectral density
+                texture = abs(fftshift(texture)) .^ 2;
+                
+                % apply tonemapping for display
+                texture = obj.tonemap(repmat(texture, [1, 1, 3]));
+            else
+                texture = obj.tonemap(obj.current_texture);
+            end
 
             % shift image
             texture = utils.imshift(texture, obj.offset_x, obj.offset_y);
