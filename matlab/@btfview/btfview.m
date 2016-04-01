@@ -241,7 +241,7 @@ classdef btfview < handle
                 end
             end
             obj.roi_sanity_checks();
-            obj.progress_callback();
+            obj.ui_callback_progress();
         end
     end
 
