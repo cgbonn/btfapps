@@ -4,7 +4,7 @@
 % * authors:
 % *  - Sebastian Merzbach <merzbach@cs.uni-bonn.de>
 % *
-% * last modification date: 2015-03-31
+% * last modification date: 2016-04-05
 % *
 % * This file is part of btfapps.
 % * 
@@ -54,7 +54,10 @@ function obj = callback_checkbox(obj, ch, evnt) %#ok<INUSD>
             obj.show_texture_psd = val;
         case obj.handles.ch_wrap_texture
             obj.wrap_around_texture = val;
+        case obj.handles.ch_divide_cosine
+            obj.divide_cosine = val;
     end
-    obj.show_texture();
+    force_reload = true;
+    obj.show_texture(force_reload);
     obj.show_abrdf();
 end

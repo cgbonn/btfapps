@@ -4,7 +4,7 @@
 % * authors:
 % *  - Sebastian Merzbach <merzbach@cs.uni-bonn.de>
 % *
-% * last modification date: 2015-03-31
+% * last modification date: 2016-04-05
 % *
 % * This file is part of btfapps.
 % * 
@@ -121,6 +121,7 @@ function obj = ui_initialize(obj)
     obj.handles.uix_tm_bb2 = uiextras.VButtonBox('Parent', obj.handles.uix_tm_ho);
     obj.handles.uix_tm_bb3 = uiextras.VButtonBox('Parent', obj.handles.uix_tm_ho);
     obj.handles.uix_disp_bb1 = uiextras.VButtonBox('Parent', obj.handles.uix_disp_ho);
+    obj.handles.uix_disp_bb1b = uiextras.VButtonBox('Parent', obj.handles.uix_disp_ho);
     obj.handles.uix_disp_vb = uiextras.VBox('Parent', obj.handles.uix_disp_ho);
     obj.handles.uix_disp_bb2 = uiextras.VButtonBox('Parent', obj.handles.uix_disp_vb);
     obj.handles.uix_disp_bb2_gr = uiextras.Grid('Parent', obj.handles.uix_disp_vb);
@@ -128,7 +129,7 @@ function obj = ui_initialize(obj)
     obj.handles.uix_disp_ho_bdi = uiextras.HBox('Parent', obj.handles.uix_disp_bdi_bp);
     obj.handles.uix_disp_bb_bdi1 = uiextras.VButtonBox('Parent', obj.handles.uix_disp_ho_bdi);
     obj.handles.uix_disp_bb_bdi2 = uiextras.VButtonBox('Parent', obj.handles.uix_disp_ho_bdi);
-    set(obj.handles.uix_disp_ho, 'Sizes', [115, 125, -1]);
+    set(obj.handles.uix_disp_ho, 'Sizes', [115, 115, 125, -1]);
     
     % tonemapping tab
     % first column
@@ -180,8 +181,12 @@ function obj = ui_initialize(obj)
     obj.handles.ch_wrap_texture = uicontrol('Parent', obj.handles.uix_disp_bb1, 'Style', 'checkbox', 'String', 'wrap cursor', 'Value', obj.wrap_around_texture, 'Callback', @obj.callback_checkbox);
     obj.handles.ch_fixed_aspect_ratio = uicontrol('Parent', obj.handles.uix_disp_bb1, 'Style', 'checkbox', 'String', 'fix asp. ratio', 'Value', obj.fixed_aspect_ratio, 'Callback', @obj.callback_checkbox);
     obj.handles.ch_crosshair = uicontrol('Parent', obj.handles.uix_disp_bb1, 'Style', 'checkbox', 'String', 'crosshair', 'Value', obj.crosshair, 'Callback', @obj.callback_checkbox);
-    obj.handles.ch_texture_psd = uicontrol('Parent', obj.handles.uix_disp_bb1, 'Style', 'checkbox', 'String', 'texture PSD', 'Value', obj.show_texture_psd, 'Callback', @obj.callback_checkbox);
     set(obj.handles.uix_disp_bb1, 'ButtonSize', [110, 20]);
+    
+    % BTF-specific display options
+    obj.handles.ch_texture_psd = uicontrol('Parent', obj.handles.uix_disp_bb1b, 'Style', 'checkbox', 'String', 'texture PSD', 'Value', obj.show_texture_psd, 'Callback', @obj.callback_checkbox);
+    obj.handles.ch_divide_cosine = uicontrol('Parent', obj.handles.uix_disp_bb1b, 'Style', 'checkbox', 'String', 'divide cos', 'Value', obj.divide_cosine, 'Callback', @obj.callback_checkbox);
+    set(obj.handles.uix_disp_bb1b, 'ButtonSize', [110, 20]);
     
     % ROI selection
     % first column (labels)

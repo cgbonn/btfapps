@@ -4,7 +4,7 @@
 % * authors:
 % *  - Sebastian Merzbach <merzbach@cs.uni-bonn.de>
 % *
-% * last modification date: 2015-03-31
+% * last modification date: 2016-04-05
 % *
 % * This file is part of btfapps.
 % *
@@ -109,6 +109,7 @@ classdef btfview < handle
         apply_roi = true; % when exporting BTFs, apply the selected ROI
         crosshair = true; % show current (x,y)- and (l,v)-positions with a crosshair?
         show_texture_psd = false; % show power spectral density instead of textures
+        divide_cosine = false; % divide by cosine of theta_light
     end
 
     methods (Access = public)
@@ -297,10 +298,6 @@ classdef btfview < handle
             %   image: arbitrarily sized image data
             %   do_clamp: force clamping to [0, 1]
 
-            scale = obj.scale; %#ok<PROP>
-            gamma = obj.gamma; %#ok<PROP>
-            offset = obj.offset_color;
-
             if ~exist('do_clamp', 'var')
                 do_clamp = true;
             end
@@ -314,24 +311,29 @@ classdef btfview < handle
                 image_max = max(image(:));
                 image = (image - image_min) / (image_max - image_min);
             else
-                image = scale * utils.clamp(image - offset, 0, inf); %#ok<PROP>
+                image = obj.scale * utils.clamp(image - obj.offset_color, 0, inf);
             end
-            image = image .^ (1. / gamma); %#ok<PROP>
+            image = image .^ (1. / obj.gamma);
             if do_clamp
                 image = utils.clamp(image);
             end
         end
 
-        function obj = show_texture(obj)
+        function obj = show_texture(obj, force_reload)
             % load texture from BTF;
             % for BDIs this might result in black textures, as reading textures
             % from BDI files is extremely slow and is disabled by default
+            
+            if ~exist('force_reload', 'var')
+                force_reload = false;
+            end
 
             obj.l = max(1, min(obj.num_lights, obj.l));
             obj.v = max(1, min(obj.num_views, obj.v));
 
             % only reload texture when needed
-            if obj.current_l ~= obj.l || obj.current_v ~= obj.v
+            if force_reload || obj.current_l ~= obj.l || obj.current_v ~= obj.v
+                obj.btfs{obj.b}.set_cosine_flag(obj.divide_cosine);
                 obj.current_texture = obj.btfs{obj.b}.decode_texture(obj.l, obj.v);
                 obj.current_l = obj.l;
                 obj.current_v = obj.v;
@@ -416,6 +418,7 @@ classdef btfview < handle
             obj.x = max(1, min(obj.width, obj.x));
             obj.y = max(1, min(obj.height, obj.y));
 
+            obj.btfs{obj.b}.set_cosine_flag(obj.divide_cosine);
             abrdf = obj.tonemap(obj.btfs{obj.b}.decode_abrdf(obj.x, obj.y));
 
             % add annotation
@@ -496,11 +499,12 @@ classdef btfview < handle
                 for h = 2 : numel(obj.handles.handles_sampling)
                     delete(obj.handles.handles_sampling{h});
                 end
-
-                plot_vec = @(xyz_from, xyz_to, line_width, name, color) quiver3(obj.handles.ah_sampling, ...
-                    xyz_from(1), xyz_from(2), xyz_from(3), ...
-                    xyz_to(1), xyz_to(2), xyz_to(3), 0, ...
-                    'LineWidth', line_width, 'MaxHeadSize', 0.9, ...
+                
+                plot_vec = @(xyz_from, xyz_to, line_width, name, color) plot3(obj.handles.ah_sampling, ...
+                    [xyz_from(1), xyz_from(1) + xyz_to(1)], ...
+                    [xyz_from(2), xyz_from(2) + xyz_to(2)], ...
+                    [xyz_from(3), xyz_from(3) + xyz_to(3)], ...
+                    'LineWidth', line_width, ...
                     'Color', color, 'DisplayName', name);
                 plot_ring = @(xyz, line_width, color) plot3(obj.handles.ah_sampling, ...
                     xyz(:, 1), xyz(:, 2), xyz(:, 3), ...
