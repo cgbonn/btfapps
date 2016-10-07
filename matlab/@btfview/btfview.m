@@ -109,6 +109,7 @@ classdef btfview < handle
         apply_roi = true; % when exporting BTFs, apply the selected ROI
         crosshair = true; % show current (x,y)- and (l,v)-positions with a crosshair?
         show_texture_psd = false; % show power spectral density instead of textures
+        show_abrdf_psd = false; % show power spectral density of ABRDFs
         divide_cosine = false; % divide by cosine of theta_light
     end
 
@@ -419,7 +420,23 @@ classdef btfview < handle
             obj.y = max(1, min(obj.height, obj.y));
 
             obj.btfs{obj.b}.set_cosine_flag(obj.divide_cosine);
-            abrdf = obj.tonemap(obj.btfs{obj.b}.decode_abrdf(obj.x, obj.y));
+            
+            if obj.show_abrdf_psd
+                % compute FFT of texture's intensity
+                abrdf = fft2(mean(obj.btfs{obj.b}.decode_abrdf(obj.x, obj.y), 3));
+                
+                % remove DC coefficient (this is usually much higher and
+                % prohibits nice display of the FFT)
+%                 abrdf(1, 1) = min(abrdf(:));
+                
+                % compute power spectral density
+                abrdf = abs(fftshift(abrdf)) .^ 2;
+                
+                % apply tonemapping for display
+                abrdf = obj.tonemap(repmat(abrdf, [1, 1, 3]));
+            else
+                abrdf = obj.tonemap(obj.btfs{obj.b}.decode_abrdf(obj.x, obj.y));
+            end
 
             % add annotation
             for annh = obj.handles.annot_abrdf
@@ -501,13 +518,13 @@ classdef btfview < handle
                 end
                 
                 plot_vec = @(xyz_from, xyz_to, line_width, name, color) plot3(obj.handles.ah_sampling, ...
-                    [xyz_from(1), xyz_from(1) + xyz_to(1)], ...
+                    [-xyz_from(1), -xyz_from(1) - xyz_to(1)], ...
                     [xyz_from(2), xyz_from(2) + xyz_to(2)], ...
                     [xyz_from(3), xyz_from(3) + xyz_to(3)], ...
                     'LineWidth', line_width, ...
                     'Color', color, 'DisplayName', name);
                 plot_ring = @(xyz, line_width, color) plot3(obj.handles.ah_sampling, ...
-                    xyz(:, 1), xyz(:, 2), xyz(:, 3), ...
+                    -xyz(:, 1), xyz(:, 2), xyz(:, 3), ...
                     'LineWidth', line_width, 'Color', color);
 
                 % indicate azimuth 0 degree
