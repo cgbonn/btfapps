@@ -185,6 +185,7 @@ function obj = ui_initialize(obj)
     
     % BTF-specific display options
     obj.handles.ch_texture_psd = uicontrol('Parent', obj.handles.uix_disp_bb1b, 'Style', 'checkbox', 'String', 'texture PSD', 'Value', obj.show_texture_psd, 'Callback', @obj.callback_checkbox);
+    obj.handles.ch_abrdf_psd = uicontrol('Parent', obj.handles.uix_disp_bb1b, 'Style', 'checkbox', 'String', 'ABRDF PSD', 'Value', obj.show_abrdf_psd, 'Callback', @obj.callback_checkbox);
     obj.handles.ch_divide_cosine = uicontrol('Parent', obj.handles.uix_disp_bb1b, 'Style', 'checkbox', 'String', 'divide cos', 'Value', obj.divide_cosine, 'Callback', @obj.callback_checkbox);
     set(obj.handles.uix_disp_bb1b, 'ButtonSize', [110, 20]);
     

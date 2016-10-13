@@ -335,7 +335,7 @@ classdef btfview < handle
             % only reload texture when needed
             if force_reload || obj.current_l ~= obj.l || obj.current_v ~= obj.v
                 obj.btfs{obj.b}.set_cosine_flag(obj.divide_cosine);
-                obj.current_texture = obj.btfs{obj.b}.decode_texture(obj.l, obj.v);
+                obj.current_texture = obj.btfs{obj.b}.decode_texture(int32(obj.l), int32(obj.v));
                 obj.current_l = obj.l;
                 obj.current_v = obj.v;
             end
@@ -472,7 +472,7 @@ classdef btfview < handle
             hold(obj.handles.ah_sampling, 'on');
             axis(obj.handles.ah_sampling, 'equal');
             cp = campos(obj.handles.ah_sampling);
-            campos(obj.handles.ah_sampling, [-cp(1), -cp(2), cp(3)]);
+            campos(obj.handles.ah_sampling, [7, 1, 10]);
 
             obj.show_light_view_dirs(true);
 

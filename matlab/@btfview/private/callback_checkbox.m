@@ -52,6 +52,8 @@ function obj = callback_checkbox(obj, ch, evnt) %#ok<INUSD>
             obj.update_btf();
         case obj.handles.ch_texture_psd
             obj.show_texture_psd = val;
+        case obj.handles.ch_abrdf_psd
+            obj.show_abrdf_psd = val;
         case obj.handles.ch_wrap_texture
             obj.wrap_around_texture = val;
         case obj.handles.ch_divide_cosine
