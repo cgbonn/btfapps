@@ -24,18 +24,30 @@
 % *************************************************************************
 %
 % This method updates a status text and optionally a progress bar in the GUI.
-function ui_callback_progress(obj, value, str)
+function ui_callback_progress(obj, value, str, varargin)
     % update progress bar & status text
     if exist('value', 'var')
-        obj.handles.java_progress_bar.setVisible(true);
-        set(obj.handles.uix_vbox_global, 'Sizes', [-1, 30, 115]);
-        if ~exist('str', 'var')
-            str = '';
-        end
-        
         if obj.fancy_progress
+            obj.handles.java_progress_bar.setVisible(true);
+            set(obj.handles.uix_vbox_global, 'Sizes', [-1, 30, 115]);
+            if ~exist('str', 'var')
+                str = '';
+            end
+        
             set(obj.handles.java_progress_bar, 'Value' , 100 * value);
             set(obj.handles.th_status, 'String', str);
+            
+            if numel(varargin)
+                for ii = 1 : 2 : numel(varargin)
+                    if ischar(varargin{ii}) && strcmpi(varargin{ii}, 'texture')
+                        img = varargin{ii + 1};
+                        texture = obj.tonemap(img);
+                        texture = utils.imshift(texture, obj.offset_x, obj.offset_y);
+                        texture = utils.clamp(texture);
+                        obj.handles.ih_texture = tb.imshow2(obj.handles.ih_texture, texture);
+                    end
+                end
+            end
         else
             set(obj.handles.th_status, 'String', sprintf('%03.2f%% %s', 100 * value, str));
         end

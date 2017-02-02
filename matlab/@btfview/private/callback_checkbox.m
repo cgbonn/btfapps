@@ -60,6 +60,8 @@ function obj = callback_checkbox(obj, ch, evnt) %#ok<INUSD>
             obj.divide_cosine = val;
         case obj.handles.ch_spec_normalize
             obj.normalize_spectrum = val;
+        case obj.handles.ch_fancy_progress
+            obj.fancy_progress = val;
     end
     force_reload = true;
     obj.show_texture(force_reload);

@@ -144,7 +144,8 @@ function obj = ui_initialize(obj)
     obj.handles.uix_disp_vb = uiextras.VBox('Parent', obj.handles.uix_disp_ho);
     obj.handles.uix_disp_bb2 = uiextras.VButtonBox('Parent', obj.handles.uix_disp_vb);
     obj.handles.uix_disp_bb2_gr = uiextras.Grid('Parent', obj.handles.uix_disp_vb);
-    set(obj.handles.uix_disp_ho, 'Sizes', [115, 115, 125]);
+    obj.handles.uix_disp_bb3 = uiextras.VButtonBox('Parent', obj.handles.uix_disp_ho);
+    set(obj.handles.uix_disp_ho, 'Sizes', [115, 115, 125, 125]);
     obj.handles.uix_bdi_bp = uiextras.BoxPanel('Parent', obj.handles.uix_bdi_ho, 'Title', 'Buffering');
     obj.handles.uix_bdi_ho = uiextras.HBox('Parent', obj.handles.uix_bdi_bp);
     obj.handles.uix_bdi_vbl = uiextras.VBox('Parent', obj.handles.uix_bdi_ho, 'Padding', 5);
@@ -235,6 +236,10 @@ function obj = ui_initialize(obj)
     obj.handles.ch_show_only_roi = uicontrol('Parent', obj.handles.uix_disp_bb2, 'Style', 'checkbox', 'String', 'show only ROI', 'Value', obj.show_only_roi, 'Callback', @obj.callback_checkbox);
     obj.handles.bh_reset_roi = uicontrol('Parent', obj.handles.uix_disp_bb2, 'Style', 'pushbutton', 'String', 'clear ROI', 'Callback', @obj.ui_callback_pushbutton);
     set(obj.handles.uix_disp_bb2, 'ButtonSize', [120, 20]);
+    
+    % more general display options
+    obj.handles.ch_fancy_progress = uicontrol('Parent', obj.handles.uix_disp_bb3, 'Style', 'checkbox', 'String', 'show progress', 'Value', obj.fancy_progress, 'Callback', @obj.callback_checkbox);
+    set(obj.handles.uix_disp_bb3, 'ButtonSize', [120, 20]);
     
     % BDI-specific UI elements
     obj.handles.th_num_buffered = uicontrol('Parent', obj.handles.uix_bdi_vbl, 'Style', 'text', 'String', ...

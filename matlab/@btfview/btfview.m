@@ -61,6 +61,10 @@
 % - find a way to disable the global keyboard callbacks when typing in a edit box
 
 classdef btfview < handle
+    properties (Access = public)
+        fancy_progress = true; % set this to false if you get errors regarding java swing
+    end
+    
     properties (GetAccess = public, SetAccess = protected)
         % GUI handles
         handles;
@@ -104,7 +108,6 @@ classdef btfview < handle
         normalize_spectrum = true; % automatically choose axis limits in the spectrum plot
         logarithm = false; % take the logarithm for reducing the dynamic range
 
-        fancy_progress = true; % set this to false if you get errors regarding java swing
         wrap_around_texture = false; % wrap around if cursor is moved outside of texture axes
         fixed_aspect_ratio = true; % fixed or stretched aspect ratio
         textures_from_file = false; % disable loading textures from BDI files per default
