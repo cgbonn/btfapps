@@ -1,10 +1,10 @@
 % *************************************************************************
-% * Copyright 2015 University of Bonn
+% * Copyright 2017 University of Bonn
 % *
 % * authors:
 % *  - Sebastian Merzbach <merzbach@cs.uni-bonn.de>
 % *
-% * last modification date: 2015-03-31
+% * last modification date: 2017-02-02
 % *
 % * This file is part of btfapps.
 % * 
@@ -23,16 +23,14 @@
 % *
 % *************************************************************************
 %
-% Create image objects inside the texture and ABRDF axes.
-function obj = ui_init_axes(obj)
-    nc = 3;
-    texture = zeros(obj.height, obj.width, nc, 'single');
-    obj.handles.ih_texture = tb.imshow2(obj.handles.ah_texture, texture);
-    abrdf = obj.tonemap(obj.btfs{obj.b}.decode_abrdf(obj.x, obj.y));
-    obj.handles.ih_abrdf = tb.imshow2(obj.handles.ah_abrdf, abrdf);
-
-    obj.handles.annot_texture = {};
-    obj.handles.annot_abrdf = {};
-    obj.handles.roi = [];
-    obj.handles.bh_spec = bar(obj.handles.ah_spec, 1 : 3, [0, 0, 0]);
+% Display buffer status of BDIs.
+function ui_update_bdi_chunks(obj)
+    if ~isfield(obj.handles, 'uix_bdi_bp')
+        return;
+    end
+    
+    [~, num_buf, num_tot] = ...
+        obj.btfs{obj.b}.is_buffered();
+    obj.handles.th_num_buffered.String = sprintf('chunks buffered: %d / %d (%3.2f%%)', ...
+        num_buf, num_tot, 100 * num_buf / num_tot);
 end

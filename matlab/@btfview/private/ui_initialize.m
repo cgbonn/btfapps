@@ -26,6 +26,9 @@
 % Set up all GUI layout and elements.
 function obj = ui_initialize(obj)
     obj.handles.figure = figure('MenuBar', 'none', 'ToolBar', 'none', 'NumberTitle', 'off');
+    % set a reasonable window size and move figure down accordingly
+    obj.handles.figure.Position(3 : 4) = [800, 600];
+    obj.handles.figure.Position(2) = obj.handles.figure.Position(2) - 250;
     obj.handles.figure_abrdf = [];
     obj.handles.figure_texture = [];
     obj.handles.figure_sampling = [];
@@ -46,19 +49,23 @@ function obj = ui_initialize(obj)
                 'http://www.mathworks.com/matlabcentral/fileexchange/47982-gui-layout-toolbox']);
         end
     end
-    obj.handles.uix_vbox_global = uiextras.VBox('Parent', obj.handles.figure, 'Spacing', 2); % full figure vertical box
+    obj.handles.uix_vbox_global = uiextras.VBoxFlex('Parent', obj.handles.figure, 'Spacing', 2); % full figure vertical box
     obj.handles.uix_hbox_upper = uiextras.HBoxFlex('Parent', obj.handles.uix_vbox_global, 'Spacing', 3); % upper horizontal box
     obj.handles.uix_status_box = uiextras.HBox('Parent', obj.handles.uix_vbox_global, 'Spacing', 5); % optionally displays a progress bar
     obj.handles.uix_hbox_lower = uiextras.HBoxFlex('Parent', obj.handles.uix_vbox_global, 'Spacing', 3); % lower horizontal box
-    set(obj.handles.uix_vbox_global, 'Sizes', [-1, 0, 130]);
+    set(obj.handles.uix_vbox_global, 'Sizes', [-1, 0, 175]);
     
     % create child containers in upper panels
     obj.handles.uix_vbox_upper_left = uiextras.VBoxFlex('Parent', obj.handles.uix_hbox_upper, 'Spacing', 3);
     obj.handles.uix_vbox_upper_right = uiextras.VBoxFlex('Parent', obj.handles.uix_hbox_upper, 'Spacing', 3);
-    obj.handles.uix_boxpanel_texture = uiextras.BoxPanel('Parent', obj.handles.uix_vbox_upper_left, 'Title', 'textures', 'Padding', 15, 'HelpFcn', @(a,b) disp('textures (LMB: select, RMB: move, MMB: ROI, WHEEL + {ctrl,shift,alt}: tonemapping)'));
+    obj.handles.uix_boxpanel_texture = uiextras.BoxPanel('Parent', obj.handles.uix_vbox_upper_left, ...
+        'Title', 'textures', 'Padding', 0, 'HelpFcn', @(a,b) disp('textures (LMB: select, RMB: move, MMB: ROI, WHEEL + {ctrl,shift,alt}: tonemapping)'));
     set(obj.handles.uix_boxpanel_texture, 'DockFcn', {@obj.uix_callback_dock, obj.handles.uix_boxpanel_texture});
-    obj.handles.uix_boxpanel_abrdf = uiextras.BoxPanel('Parent', obj.handles.uix_vbox_upper_right, 'Title', 'ABRDFs', 'Padding', 15, 'HelpFcn', @(a,b) disp('ABRDFs (LMB: select)'));
+    obj.handles.uix_vbox_texture = uiextras.VBox('Parent', obj.handles.uix_boxpanel_texture, 'Padding', 0);
+    obj.handles.uix_boxpanel_abrdf = uiextras.BoxPanel('Parent', obj.handles.uix_vbox_upper_right, ...
+        'Title', 'ABRDFs', 'Padding', 0, 'HelpFcn', @(a,b) disp('ABRDFs (LMB: select)'));
     set(obj.handles.uix_boxpanel_abrdf, 'DockFcn', {@obj.uix_callback_dock, obj.handles.uix_boxpanel_abrdf});
+    obj.handles.uix_vbox_abrdf = uiextras.VBox('Parent', obj.handles.uix_boxpanel_abrdf, 'Padding', 0);
     obj.handles.uix_boxpanel_sampling = uiextras.BoxPanel('Parent', obj.handles.uix_vbox_upper_right, 'Title', 'angular sampling');
     set(obj.handles.uix_boxpanel_sampling, 'MinimizeFcn', {@obj.uix_callback_minimize, obj.handles.uix_boxpanel_sampling});
     set(obj.handles.uix_boxpanel_sampling, 'DockFcn', {@obj.uix_callback_dock, obj.handles.uix_boxpanel_sampling});
@@ -90,8 +97,18 @@ function obj = ui_initialize(obj)
     end
     
     % fill upper panels
-    obj.handles.ah_texture = axes('Parent', obj.handles.uix_boxpanel_texture, 'ActivePositionProperty', 'Position', 'XTick', [], 'YTick', [], 'PlotBoxAspectRatio', [1, 1, 1]);
-    obj.handles.ah_abrdf = axes('Parent', obj.handles.uix_boxpanel_abrdf, 'ActivePositionProperty', 'Position', 'XTick',[], 'YTick', [], 'PlotBoxAspectRatio', [1, 1, 1]);
+    [l_in, l_az, v_in, v_az] = obj.btfs{obj.b}.inds_to_angles(obj.l, obj.v);
+    obj.handles.th_texture = uicontrol('Parent', obj.handles.uix_vbox_texture, 'Style', 'text', 'String', ...
+        sprintf('(Lpol,Laz)=(%.1f,%.1f), (Vpol,Vaz)=(%.1f,%.1f), (L,V)=(%d,%d)', l_in, l_az, v_in, v_az, obj.l, obj.v));
+    obj.handles.ah_texture = axes('Parent', obj.handles.uix_vbox_texture, 'ActivePositionProperty', 'OuterPosition', 'LooseInset', [0, 0, 0, 0], 'XTick', [], 'YTick', [], 'PlotBoxAspectRatio', [1, 1, 1]);
+    hold(obj.handles.ah_texture, 'on');
+    set(get(obj.handles.ah_texture, 'XLabel'), 'String', 'x');
+    set(get(obj.handles.ah_texture, 'YLabel'), 'String', 'y');
+    set(obj.handles.uix_vbox_texture, 'Sizes', [22, -1]);
+    obj.handles.th_abrdf = uicontrol('Parent', obj.handles.uix_vbox_abrdf, 'Style', 'text', 'String', sprintf('(x,y)=(%d,%d)', obj.x, obj.y));
+    obj.handles.ah_abrdf = axes('Parent', obj.handles.uix_vbox_abrdf, 'ActivePositionProperty', 'OuterPosition', 'LooseInset', [0, 0, 0, 0], 'XTick',[], 'YTick', [], 'PlotBoxAspectRatio', [1, 1, 1]);
+    hold(obj.handles.ah_abrdf, 'on');
+    set(obj.handles.uix_vbox_abrdf, 'Sizes', [22, -1]);
     obj.handles.ah_sampling = axes('Parent', obj.handles.uix_boxpanel_sampling, 'ActivePositionProperty', 'Position', 'PlotBoxAspectRatio', [1, 1, 1], 'Color', 'k');
     obj.show_hemisphere();
     obj.uix_callback_minimize([], [], obj.handles.ah_sampling);
@@ -111,9 +128,11 @@ function obj = ui_initialize(obj)
     obj.handles.uix_tm_ho = uiextras.HBox('Parent', obj.handles.uix_tabpanel_options); % tonemapping horizontal box
     obj.handles.uix_exp_grid = uiextras.Grid('Parent', obj.handles.uix_tabpanel_options); % export grid layout
     obj.handles.uix_disp_ho = uiextras.HBox('Parent', obj.handles.uix_tabpanel_options); % display horizontal box
-    set(obj.handles.uix_tabpanel_options, 'TabNames', {'Tonemapping', 'Export', 'Display'});
+    obj.handles.uix_bdi_ho = uiextras.HBox('Parent', obj.handles.uix_tabpanel_options); % BDI horizontal box
+    obj.handles.uix_spec_ho = uiextras.HBox('Parent', obj.handles.uix_tabpanel_options); % spectral uipanel
+    set(obj.handles.uix_tabpanel_options, 'TabNames', {'Tonemapping', 'Export', 'Display', 'BDI', 'Spectrum'});
     try %#ok<TRYNC>
-        set(obj.handles.uix_tabpanel_options, 'TabWidth', 75);
+        set(obj.handles.uix_tabpanel_options, 'TabWidth', -1);
     end
     
     % fill tabs for tonemapping, export, ...
@@ -125,11 +144,15 @@ function obj = ui_initialize(obj)
     obj.handles.uix_disp_vb = uiextras.VBox('Parent', obj.handles.uix_disp_ho);
     obj.handles.uix_disp_bb2 = uiextras.VButtonBox('Parent', obj.handles.uix_disp_vb);
     obj.handles.uix_disp_bb2_gr = uiextras.Grid('Parent', obj.handles.uix_disp_vb);
-    obj.handles.uix_disp_bdi_bp = uiextras.BoxPanel('Parent', obj.handles.uix_disp_ho, 'Title', 'BDI');
-    obj.handles.uix_disp_ho_bdi = uiextras.HBox('Parent', obj.handles.uix_disp_bdi_bp);
-    obj.handles.uix_disp_bb_bdi1 = uiextras.VButtonBox('Parent', obj.handles.uix_disp_ho_bdi);
-    obj.handles.uix_disp_bb_bdi2 = uiextras.VButtonBox('Parent', obj.handles.uix_disp_ho_bdi);
-    set(obj.handles.uix_disp_ho, 'Sizes', [115, 115, 125, -1]);
+    set(obj.handles.uix_disp_ho, 'Sizes', [115, 115, 125]);
+    obj.handles.uix_bdi_bp = uiextras.BoxPanel('Parent', obj.handles.uix_bdi_ho, 'Title', 'Buffering');
+    obj.handles.uix_bdi_ho = uiextras.HBox('Parent', obj.handles.uix_bdi_bp);
+    obj.handles.uix_bdi_vbl = uiextras.VBox('Parent', obj.handles.uix_bdi_ho, 'Padding', 5);
+    obj.handles.uix_bdi_vbr = uiextras.VBox('Parent', obj.handles.uix_bdi_ho, 'Padding', 5);
+    obj.handles.uix_spec_vbb = uiextras.VButtonBox('Parent', obj.handles.uix_spec_ho);
+    obj.handles.uip_spec = uipanel('Parent', obj.handles.uix_spec_ho);
+    set(obj.handles.uix_spec_ho, 'Sizes', [100, -1]);
+    set(obj.handles.uix_spec_vbb, 'ButtonSize', [100, 20]);
     
     % tonemapping tab
     % first column
@@ -139,9 +162,9 @@ function obj = ui_initialize(obj)
     uiextras.Empty('Parent', obj.handles.uix_tm_bb1);
     
     % second column
-    obj.handles.eh_scale = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'edit', 'String', sprintf('%.2f', obj.scale), 'Callback', @obj.ui_callback_edit);
-    obj.handles.eh_gamma = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'edit', 'String', sprintf('%.2f', obj.gamma), 'Callback', @obj.ui_callback_edit);
-    obj.handles.eh_offset = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'edit', 'String', sprintf('%.2f', obj.offset_color), 'Callback', @obj.ui_callback_edit);
+    obj.handles.eh_scale = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'edit', 'String', sprintf('%.2f', obj.default_scale), 'Callback', @obj.ui_callback_edit);
+    obj.handles.eh_gamma = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'edit', 'String', sprintf('%.2f', obj.default_gamma), 'Callback', @obj.ui_callback_edit);
+    obj.handles.eh_offset = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'edit', 'String', sprintf('%.2f', obj.default_offset_color), 'Callback', @obj.ui_callback_edit);
     obj.handles.ch_normalize = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'checkbox', 'String', 'normalize', 'Value', obj.normalize, 'Callback', @obj.callback_checkbox);
     obj.handles.ch_logarithm = uicontrol('Parent', obj.handles.uix_tm_bb2, 'Style', 'checkbox', 'String', 'logarithm', 'Value', obj.logarithm, 'Callback', @obj.callback_checkbox);
     
@@ -214,16 +237,28 @@ function obj = ui_initialize(obj)
     set(obj.handles.uix_disp_bb2, 'ButtonSize', [120, 20]);
     
     % BDI-specific UI elements
-    obj.handles.ch_textures_from_file = uicontrol('Parent', obj.handles.uix_disp_bb_bdi1, 'Style', 'checkbox', 'String', 'read from file', 'Value', obj.textures_from_file, 'Callback', @obj.callback_checkbox);
-    obj.handles.ch_only_buffered = uicontrol('Parent', obj.handles.uix_disp_bb_bdi1, 'Style', 'checkbox', 'String', 'buffered only', 'Value', obj.only_use_buffered, 'Callback', @obj.callback_checkbox);
-    obj.handles.uix_disp_bdi_bb_ho = uiextras.HBox('Parent', obj.handles.uix_disp_bb_bdi2);
-    obj.handles.eh_buffer_mem = uicontrol('Parent', obj.handles.uix_disp_bdi_bb_ho, 'Style', 'edit', 'String', sprintf('%.1f', 100 * obj.buffer_mem), 'Callback', @obj.ui_callback_edit);
-    uicontrol('Parent', obj.handles.uix_disp_bdi_bb_ho, 'Style', 'text', 'String', '% free RAM', 'HorizontalAlignment', 'left');
-    set(obj.handles.uix_disp_bdi_bb_ho, 'Sizes', [30, 60]);
-    obj.handles.bh_buffer_bdi = uicontrol('Parent', obj.handles.uix_disp_bb_bdi2, 'Style', 'pushbutton', 'String', 'buffer BDI', 'Callback', @obj.ui_callback_pushbutton);
-    obj.handles.bh_clear_bdi_buffer = uicontrol('Parent', obj.handles.uix_disp_bb_bdi2, 'Style', 'pushbutton', 'String', 'clear buffer', 'Callback', @obj.ui_callback_pushbutton);
-    set(obj.handles.uix_disp_bb_bdi1, 'ButtonSize', [85, 20]);
-    set(obj.handles.uix_disp_bb_bdi2, 'ButtonSize', [90, 20]);
+    obj.handles.th_num_buffered = uicontrol('Parent', obj.handles.uix_bdi_vbl, 'Style', 'text', 'String', ...
+        sprintf('chunks buffered: %d / %d (%3.2f%%)', 0, 0, 0), 'HorizontalAlignment', 'left');
+    obj.handles.ch_textures_from_file = uicontrol('Parent', obj.handles.uix_bdi_vbl, 'Style', 'checkbox', 'String', 'read from file', 'Value', obj.textures_from_file, 'Callback', @obj.callback_checkbox);
+    obj.handles.ch_only_buffered = uicontrol('Parent', obj.handles.uix_bdi_vbl, 'Style', 'checkbox', 'String', 'buffered only', 'Value', obj.only_use_buffered, 'Callback', @obj.callback_checkbox);
+    obj.handles.uix_bdi_bb_ho = uiextras.HBox('Parent', obj.handles.uix_bdi_vbr);
+    uicontrol('Parent', obj.handles.uix_bdi_bb_ho, 'Style', 'text', 'String', 'use ', 'HorizontalAlignment', 'left');
+    obj.handles.eh_buffer_mem = uicontrol('Parent', obj.handles.uix_bdi_bb_ho, 'Style', 'edit', 'String', sprintf('%.1f', 100 * obj.buffer_mem), 'Callback', @obj.ui_callback_edit);
+    uicontrol('Parent', obj.handles.uix_bdi_bb_ho, 'Style', 'text', 'String', '% of free RAM', 'HorizontalAlignment', 'left');
+    set(obj.handles.uix_bdi_bb_ho, 'Sizes', [35, -1, 100]);
+    obj.handles.bh_buffer_bdi = uicontrol('Parent', obj.handles.uix_bdi_vbr, 'Style', 'pushbutton', 'String', 'buffer BDI', 'Callback', @obj.ui_callback_pushbutton);
+    obj.handles.bh_clear_bdi_buffer = uicontrol('Parent', obj.handles.uix_bdi_vbr, 'Style', 'pushbutton', 'String', 'clear buffer', 'Callback', @obj.ui_callback_pushbutton);
+    obj.handles.uix_bdi_ho.Widths = [260, 180];
+    obj.handles.uix_bdi_vbl.Heights(:) = 20;
+    obj.handles.uix_bdi_vbr.Heights(:) = 20;
+    
+    % UI elements for spectral BTFs
+    obj.handles.ah_spec = axes('Parent', obj.handles.uip_spec, ...
+        'ActivePositionProperty', 'Position', 'XTick', [], 'YTick', [], ...
+        'PlotBoxAspectRatio', [1, 1, 1], 'OuterPosition', [0, 0, 1, 1]);
+    obj.handles.ch_spec_normalize = uicontrol('Parent', obj.handles.uix_spec_vbb, ...
+        'Style', 'checkbox', 'String', 'normalize', 'Value', obj.normalize_spectrum, ...
+        'Callback', @obj.callback_checkbox);
     
     % set visibility of BDI-specific UI elements
     obj.ui_toggle_bdi();

@@ -46,16 +46,16 @@ function obj = callback_key_press(obj, src, evnt, ah) %#ok<INUSL>
         case 'c'
             obj.crosshair = ~obj.crosshair;
         case 'g'
-            obj.gamma = 1;
-            set(obj.handles.eh_gamma, 'String', sprintf('%.2f', obj.gamma));
+            obj.tonemapper.gamma = obj.default_gamma;
+            set(obj.handles.eh_gamma, 'String', sprintf('%.2f', obj.tonemapper.gamma));
         case 'n'
             obj.normalize = ~obj.normalize;
         case 'o'
-            obj.offset_color = 0;
-            set(obj.handles.eh_offset, 'String', sprintf('%.2f', obj.offset_color));
+            obj.tonemapper.offset = obj.default_offset_color;
+            set(obj.handles.eh_offset, 'String', sprintf('%.2f', obj.tonemapper.offset));
         case 's'
-            obj.scale = 1;
-            set(obj.handles.eh_scale, 'String', sprintf('%.2f', obj.scale));
+            obj.tonemapper.scale = obj.default_scale;
+            set(obj.handles.eh_scale, 'String', sprintf('%.2f', obj.tonemapper.scale));
         case 'x'
             obj.offset_x = 0;
         case 'y'
@@ -72,6 +72,7 @@ function obj = callback_key_press(obj, src, evnt, ah) %#ok<INUSL>
     end
     obj.show_texture();
     obj.show_abrdf();
+    obj.show_spectrum();
     % sometimes this callback is lost...
     set(obj.handles.figure,'WindowKeyReleaseFcn',@obj.callback_key_release);
 end

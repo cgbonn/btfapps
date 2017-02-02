@@ -26,9 +26,13 @@
 % Hide or show BDI-specific GUI elements depending on the type of the currently
 % selected BTF.
 function obj = ui_toggle_bdi(obj)
+    if ~isfield(obj.handles, 'uix_bdi_bp')
+        return;
+    end
+    
     if obj.btfs{obj.b}.is_bdi()
-        set(obj.handles.uix_disp_bdi_bp, 'Visible', 'On');
+        set(obj.handles.uix_bdi_bp, 'Visible', 'On');
     else
-        set(obj.handles.uix_disp_bdi_bp, 'Visible', 'Off');
+        set(obj.handles.uix_bdi_bp, 'Visible', 'Off');
     end
 end

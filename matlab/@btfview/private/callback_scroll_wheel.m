@@ -29,25 +29,25 @@ function obj = callback_scroll_wheel(obj, src, evnt) %#ok<INUSL>
     switch obj.key_mod
         case 'control'
             if evnt.VerticalScrollCount == 1
-                obj.scale = obj.scale / 1.25;
+                obj.tonemapper.scale = obj.tonemapper.scale / 1.25;
             else
-                obj.scale = obj.scale * 1.25;
+                obj.tonemapper.scale = obj.tonemapper.scale * 1.25;
             end
-            set(obj.handles.eh_scale, 'String', sprintf('%.2f', obj.scale));
+            set(obj.handles.eh_scale, 'String', sprintf('%.2f', obj.tonemapper.scale));
         case 'shift'
             if evnt.VerticalScrollCount == 1
-                obj.gamma = obj.gamma / 1.25;
+                obj.tonemapper.gamma = obj.tonemapper.gamma / 1.25;
             else
-                obj.gamma = obj.gamma * 1.25;
+                obj.tonemapper.gamma = obj.tonemapper.gamma * 1.25;
             end
-            set(obj.handles.eh_gamma, 'String', sprintf('%.2f', obj.gamma));
+            set(obj.handles.eh_gamma, 'String', sprintf('%.2f', obj.tonemapper.gamma));
         case 'alt'
             if evnt.VerticalScrollCount == 1
-                obj.offset_color = obj.offset_color - obj.scale / 50;
+                obj.tonemapper.offset = obj.tonemapper.offset - obj.tonemapper.scale / 50;
             else
-                obj.offset_color = obj.offset_color + obj.scale / 50;
+                obj.tonemapper.offset = obj.tonemapper.offset + obj.tonemapper.scale / 50;
             end
-            set(obj.handles.eh_offset, 'String', sprintf('%.2f', obj.offset_color));
+            set(obj.handles.eh_offset, 'String', sprintf('%.2f', obj.tonemapper.offset));
         otherwise
             if evnt.VerticalScrollCount == -1
                 obj.b = max(1, min(numel(obj.btfs), obj.b - 1));

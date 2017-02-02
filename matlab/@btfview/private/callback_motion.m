@@ -91,4 +91,5 @@ function obj = callback_motion(obj, src, evnt, ah) %#ok<INUSL>
     end
     obj.show_texture();
     obj.show_abrdf();
+    obj.show_spectrum();
 end

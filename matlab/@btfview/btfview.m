@@ -65,6 +65,12 @@ classdef btfview < handle
         % GUI handles
         handles;
     end
+    
+    properties (Access = public, Constant = true)
+        default_scale = 1; % linear scaling of texture
+        default_gamma = 1; % gamma correction
+        default_offset_color = 0; % color offset
+    end
 
     properties (Access = protected)
         btfs; % cell array of BTFs
@@ -74,6 +80,7 @@ classdef btfview < handle
         num_channels; % number of color channels of currently displayed BTF
         num_lights; % number of light samples of currently displayed BTF
         num_views; % number of view samples of currently displayed BTF
+        wavelengths; % wavelength sampling in case of a spectral BTF
 
         x = 1; % horizontal texture index
         y = 1; % vertical texture index
@@ -92,10 +99,9 @@ classdef btfview < handle
         key_mod = ''; % currently pressed function key
         sel_type = ''; % currently pressed mouse button
 
-        scale = 1; % linear scaling of texture
-        gamma = 1; % gamma correction
-        offset_color = 0; % color offset
+        tonemapper; % tonemapper object that displays HDR and multispectral data
         normalize = false; % normalize each image/abrdf
+        normalize_spectrum = true; % automatically choose axis limits in the spectrum plot
         logarithm = false; % take the logarithm for reducing the dynamic range
 
         fancy_progress = true; % set this to false if you get errors regarding java swing
@@ -135,12 +141,18 @@ classdef btfview < handle
                 inp{bi}.set_verbose(true);
                 inp{bi}.set_progress_callback(@obj.ui_callback_progress);
             end
-
+            
             obj.btfs = inp;
             obj.update_btf();
+            
+            obj.tonemapper = tonemapper('scale', obj.default_scale, ...
+                'gamma', obj.default_gamma, ...
+                'offset', obj.default_offset_color);
+            
             obj.ui_initialize();
             obj.show_abrdf();
             obj.show_texture();
+            obj.ui_update_bdi_chunks();
         end
 
         function obj = save_images(obj)
@@ -173,8 +185,8 @@ classdef btfview < handle
                 texture = obj.btfs{bi}.decode_texture(obj.l, obj.v);
                 abrdf = obj.btfs{bi}.decode_abrdf(obj.x, obj.y);
                 if get(obj.handles.ch_tonemap_images, 'Value')
-                    texture = obj.tonemap(texture, true);
-                    abrdf = obj.tonemap(abrdf, true);
+                    texture = obj.tonemap(texture);
+                    abrdf = obj.tonemap(abrdf);
                     imwrite(texture, [texture_file_name, '.png']);
                     imwrite(abrdf, [abrdf_file_name, '.png']);
                 else
@@ -248,7 +260,7 @@ classdef btfview < handle
     end
 
     methods (Access = protected)
-        function obj = update_btf(obj)
+        function update_btf(obj)
             % load important meta data for currently selected BTF
 
             % force update to texture buffer
@@ -265,14 +277,84 @@ classdef btfview < handle
             obj.num_lights = obj.btfs{obj.b}.meta.nL;
             obj.num_views = obj.btfs{obj.b}.meta.nV;
             obj.num_channels = obj.btfs{obj.b}.meta.num_channels;
-            if obj.num_channels ~= 3
-                error('only 3 channel BTFs are supported at the moment');
+            if isfield(obj.btfs{obj.b}.meta, 'wavelengths') && ...
+                    isnumeric(obj.btfs{obj.b}.meta.wavelengths)
+                obj.wavelengths = obj.btfs{obj.b}.meta.wavelengths;
+            elseif obj.num_channels ~= 3
+                error(['For non-RGB BTFs the wavelength sampling must be ', ...
+                    'specified in the meta struct in the field ''wavelengths''']);
+            else
+                obj.wavelengths = {'R', 'G', 'B'};
             end
+            
+            obj.update_axes();
 
             % BTF dimensions might have changed
             obj.roi_sanity_checks();
+            
+            % show/hide BDI-specific UI elements
+            obj.ui_toggle_bdi();
+            obj.ui_update_bdi_chunks();
         end
-
+        
+        function show_spectrum(obj)
+            % show a bar plot of the currently selected texel's spectrum
+            % (or RGB values)
+            if ~strcmpi('Spectrum', obj.handles.uix_tabpanel_options.TabTitles{...
+                    obj.handles.uix_tabpanel_options.Selection})
+                return;
+            end
+            
+            % prepare bar plot
+            if obj.btfs{obj.b}.is_spectral()
+                bins = obj.btfs{obj.b}.meta.wavelengths;
+                labels = cellfun(@num2str, num2cell(bins(:)), 'UniformOutput', false);
+            elseif obj.btfs{obj.b}.meta.num_channels == 3
+                bins = 1 : 3;
+                labels = {'R'; 'G'; 'B'};
+            else
+                bins = 1 : obj.btfs{obj.b}.meta.num_channels;
+                labels = repmat({'?'}, 1, obj.btfs{obj.b}.meta.num_channels);
+            end
+            
+            % normalize y-axis?
+            if obj.normalize_spectrum
+                obj.handles.ah_spec.YLimMode = 'auto';
+            else
+                obj.handles.ah_spec.YLimMode = 'manual';
+            end
+            
+            % get the spectrum & plot it
+            cur_texel = obj.btfs{obj.b}.decode_texel(obj.x, obj.y, obj.l, obj.v);
+            cur_color = obj.handles.ih_abrdf.CData(obj.l, obj.v, :);
+            obj.handles.bh_spec = tb.bar2(obj.handles.bh_spec, bins, cur_texel(:)', ...
+                'FaceColor', cur_color);
+            
+            % update x-axis labels
+            if obj.btfs{obj.b}.is_spectral() || obj.btfs{obj.b}.meta.num_channels ~= 3
+                obj.handles.ah_spec.XTickLabel = cellfun(@num2str, ...
+                    num2cell(obj.handles.ah_spec.XTick), 'UniformOutput', false);
+            else
+                obj.handles.ah_spec.XTickLabel = labels;
+            end
+        end
+        
+        function update_axes(obj)
+            % if the selecte BTF object changes, we might have to update
+            % the texture and ABRDF axis limits
+            if isfield(obj.handles, 'ah_texture') % init?
+                w_new = obj.btfs{obj.b}.meta.width;
+                h_new = obj.btfs{obj.b}.meta.height;
+                obj.handles.ih_texture = tb.imshow2(obj.handles.ih_texture, ...
+                    zeros(h_new, w_new, 3));
+                
+                nl_new = obj.btfs{obj.b}.meta.nL;
+                nv_new = obj.btfs{obj.b}.meta.nV;
+                obj.handles.ih_abrdf = tb.imshow2(obj.handles.ih_abrdf, ...
+                    zeros(nl_new, nv_new, 3));
+            end
+        end
+        
         function obj = autoscale(obj)
             % estimate global color limits by sampling some ABRDFs
             mid_x = round(obj.width / 2);
@@ -285,23 +367,18 @@ classdef btfview < handle
                 clims(1) = min(clims(1), clims_tmp(1));
                 clims(2) = max(clims(2), clims_tmp(2));
             end
-            obj.offset_color = clims(1);
-            obj.scale = 1 / (clims(2) - obj.offset_color);
-            set(obj.handles.eh_gamma, 'String', sprintf('%.2f', obj.gamma));
-            set(obj.handles.eh_offset, 'String', sprintf('%.2f', obj.offset_color));
-            set(obj.handles.eh_scale, 'String', sprintf('%.2f', obj.scale));
+            obj.tonemapper.offset = clims(1);
+            obj.tonemapper.scale = 1 / (clims(2) - obj.tonemapper.offset);
+            set(obj.handles.eh_gamma, 'String', sprintf('%.2f', obj.tonemapper.gamma));
+            set(obj.handles.eh_offset, 'String', sprintf('%.2f', obj.tonemapper.offset));
+            set(obj.handles.eh_scale, 'String', sprintf('%.2f', obj.tonemapper.scale));
         end
 
-        function image = tonemap(obj, image, do_clamp)
+        function image = tonemap(obj, image)
             % Prepares image data for display.
             % Applies an offset, linear scaling, gamma-correction and clamping
             % on the data. Parameters:
             %   image: arbitrarily sized image data
-            %   do_clamp: force clamping to [0, 1]
-
-            if ~exist('do_clamp', 'var')
-                do_clamp = true;
-            end
             
             if obj.logarithm
                 image = log(image);
@@ -311,13 +388,10 @@ classdef btfview < handle
                 image_min = min(image(:));
                 image_max = max(image(:));
                 image = (image - image_min) / (image_max - image_min);
-            else
-                image = obj.scale * utils.clamp(image - obj.offset_color, 0, inf);
             end
-            image = image .^ (1. / obj.gamma);
-            if do_clamp
-                image = utils.clamp(image);
-            end
+            
+            image = img(image, 'channel_names', obj.wavelengths);
+            image = obj.tonemapper.tonemap(image);
         end
 
         function obj = show_texture(obj, force_reload)
@@ -391,7 +465,7 @@ classdef btfview < handle
 
             % actually display the tonemapped image
             texture = utils.clamp(texture);
-            set(obj.handles.ih_texture, 'CData', texture);
+            obj.handles.ih_texture = tb.imshow2(obj.handles.ih_texture, texture);
 
             % show only cropped region in texture view
             if obj.show_only_roi
@@ -404,7 +478,7 @@ classdef btfview < handle
 
             % update status UI
             [l_in, l_az, v_in, v_az] = obj.btfs{obj.b}.inds_to_angles(obj.l, obj.v);
-            set(obj.handles.uix_boxpanel_texture, 'Title', ...
+            set(obj.handles.th_texture, 'String', ...
                 sprintf('(Lpol,Laz)=(%.1f,%.1f), (Vpol,Vaz)=(%.1f,%.1f), (L,V)=(%d,%d)', ...
                 l_in, l_az, v_in, v_az, obj.l, obj.v));
 
@@ -450,10 +524,10 @@ classdef btfview < handle
             end
 
             % actually display the tonemapped image
-            set(obj.handles.ih_abrdf,'CData', abrdf);
+            obj.handles.ih_abrdf = tb.imshow2(obj.handles.ih_abrdf, abrdf);
 
             % update status UI
-            set(obj.handles.uix_boxpanel_abrdf, 'Title', sprintf('(x,y)=(%d,%d)', obj.x, obj.y));
+            set(obj.handles.th_abrdf, 'String', sprintf('(x,y)=(%d,%d)', obj.x, obj.y));
         end
 
         function obj = show_hemisphere(obj)

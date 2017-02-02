@@ -36,23 +36,23 @@ function obj = ui_callback_edit(obj, src, evnt) %#ok<INUSD>
             set(obj.handles.eh_buffer_mem, 'String', ...
                 sprintf('%.1f', 100 * obj.buffer_mem));
         case obj.handles.eh_gamma
-            tmp = obj.gamma;
+            tmp = obj.tonemapper.gamma;
             try %#ok<*TRYNC>
                 tmp = str2double(val);
             end
-            obj.gamma = tmp;
+            obj.tonemapper.gamma = tmp;
         case obj.handles.eh_offset
-            tmp = obj.offset_color;
+            tmp = obj.tonemapper.offset;
             try
                 tmp = str2double(val);
             end
-            obj.offset_color = tmp;
+            obj.tonemapper.offset = tmp;
         case obj.handles.eh_scale
-            tmp = obj.scale;
+            tmp = obj.tonemapper.scale;
             try
                 tmp = str2double(val);
             end
-            obj.scale = tmp;
+            obj.tonemapper.scale = tmp;
     end
     
     % region of interest has been edited

@@ -1,0 +1,3 @@
+[submodule "matlabtools"]
+	path = matlabtools
+	url = https://github.com/smerzbach/matlabtools.git

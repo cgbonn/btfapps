@@ -38,5 +38,6 @@ function obj = ui_callback_listbox(obj, src, evnt) %#ok<INUSD>
             obj.update_btf();
             obj.show_abrdf();
             obj.show_texture();
+            obj.show_spectrum();
     end
 end

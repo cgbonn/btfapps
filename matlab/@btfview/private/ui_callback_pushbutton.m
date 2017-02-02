@@ -37,12 +37,13 @@ function obj = ui_callback_pushbutton(obj, bh, evnt) %#ok<INUSD>
             if obj.btfs{obj.b}.is_bdi()
                 obj.btfs{obj.b}.clear_buffer();
             end
+            obj.ui_update_bdi_chunks();
         case obj.handles.bh_gamma
-            obj.gamma = 1;
-            set(obj.handles.eh_gamma,'String',sprintf('%.2f', obj.gamma));
+            obj.tonemapper.gamma = 1;
+            set(obj.handles.eh_gamma,'String',sprintf('%.2f', obj.tonemapper.gamma));
         case obj.handles.bh_offset
-            obj.offset_color = 0;
-            set(obj.handles.eh_offset,'String',sprintf('%.2f', obj.offset_color));
+            obj.tonemapper.offset = 0;
+            set(obj.handles.eh_offset,'String',sprintf('%.2f', obj.tonemapper.offset));
         case obj.handles.bh_offsetXY
             obj.offset_x = 0;
             obj.offset_y = 0;
@@ -68,8 +69,8 @@ function obj = ui_callback_pushbutton(obj, bh, evnt) %#ok<INUSD>
         case obj.handles.bh_save_images
             obj.save_images();
         case obj.handles.bh_scale
-            obj.scale = 1;
-            set(obj.handles.eh_scale,'String',sprintf('%.2f', obj.scale));
+            obj.tonemapper.scale = 1;
+            set(obj.handles.eh_scale,'String',sprintf('%.2f', obj.tonemapper.scale));
     end
     obj.show_texture();
     obj.show_abrdf();

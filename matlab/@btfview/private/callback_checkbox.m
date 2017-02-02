@@ -58,6 +58,8 @@ function obj = callback_checkbox(obj, ch, evnt) %#ok<INUSD>
             obj.wrap_around_texture = val;
         case obj.handles.ch_divide_cosine
             obj.divide_cosine = val;
+        case obj.handles.ch_spec_normalize
+            obj.normalize_spectrum = val;
     end
     force_reload = true;
     obj.show_texture(force_reload);
