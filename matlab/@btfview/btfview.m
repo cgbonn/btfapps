@@ -280,8 +280,7 @@ classdef btfview < handle
             obj.num_lights = obj.btfs{obj.b}.meta.nL;
             obj.num_views = obj.btfs{obj.b}.meta.nV;
             obj.num_channels = obj.btfs{obj.b}.meta.num_channels;
-            if isfield(obj.btfs{obj.b}.meta, 'wavelengths') && ...
-                    isnumeric(obj.btfs{obj.b}.meta.wavelengths)
+            if obj.btfs{obj.b}.is_spectral()
                 obj.wavelengths = obj.btfs{obj.b}.meta.wavelengths;
             elseif obj.num_channels ~= 3
                 error(['For non-RGB BTFs the wavelength sampling must be ', ...
